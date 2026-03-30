@@ -3,24 +3,222 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>pretext-canvas</title>
+  <title>@shipitandpray/pretext-canvas</title>
   <style>
-    body { margin: 0; font-family: Inter, sans-serif; background: linear-gradient(180deg, #ecfeff, #eef2ff); color: #111827; }
-    main { max-width: 900px; margin: 0 auto; padding: 56px 24px; }
-    .card { background: rgba(255,255,255,.88); border: 1px solid rgba(255,255,255,.7); border-radius: 24px; padding: 28px; }
-    h1 { font-size: 3rem; margin: 0 0 12px; }
-    p { line-height: 1.6; color: #4b5563; }
-    code { background: #cffafe; padding: 2px 6px; border-radius: 6px; }
+    :root {
+      color-scheme: light;
+      --bg: #f8f4ec;
+      --panel: rgba(255, 255, 255, 0.9);
+      --ink: #132238;
+      --muted: #4f6275;
+      --accent: #0f766e;
+      --accent-2: #b45309;
+      --shadow: 0 18px 60px rgba(19, 34, 56, 0.14);
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif;
+      background:
+        radial-gradient(circle at top left, rgba(245, 158, 11, 0.16), transparent 34%),
+        radial-gradient(circle at top right, rgba(15, 118, 110, 0.16), transparent 30%),
+        linear-gradient(180deg, #fff8ef 0%, #f4efe7 100%);
+      color: var(--ink);
+    }
+
+    main {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 48px 20px 72px;
+    }
+
+    .hero {
+      display: grid;
+      gap: 18px;
+      grid-template-columns: minmax(0, 1.2fr) minmax(320px, 0.8fr);
+      align-items: start;
+    }
+
+    .panel {
+      background: var(--panel);
+      border: 1px solid rgba(19, 34, 56, 0.08);
+      border-radius: 28px;
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(14px);
+    }
+
+    .intro {
+      padding: 36px;
+    }
+
+    h1 {
+      margin: 0 0 12px;
+      font-size: clamp(2.5rem, 5vw, 4.8rem);
+      line-height: 0.94;
+      letter-spacing: -0.05em;
+    }
+
+    .lede {
+      margin: 0;
+      max-width: 58ch;
+      font-size: 1.08rem;
+      line-height: 1.7;
+      color: var(--muted);
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 9px 14px;
+      border-radius: 999px;
+      background: rgba(15, 118, 110, 0.09);
+      color: var(--accent);
+      font-size: 0.86rem;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      margin-bottom: 18px;
+    }
+
+    .sample {
+      padding: 24px;
+      display: grid;
+      gap: 18px;
+    }
+
+    canvas {
+      width: 100%;
+      height: auto;
+      display: block;
+      border-radius: 20px;
+      background:
+        linear-gradient(180deg, rgba(255,255,255,0.96), rgba(255,255,255,0.72)),
+        repeating-linear-gradient(0deg, rgba(19,34,56,0.03) 0 1px, transparent 1px 28px);
+      border: 1px solid rgba(19, 34, 56, 0.1);
+    }
+
+    .meta {
+      display: grid;
+      gap: 10px;
+      font-size: 0.95rem;
+      color: var(--muted);
+      line-height: 1.6;
+    }
+
+    code {
+      padding: 2px 6px;
+      border-radius: 6px;
+      background: rgba(180, 83, 9, 0.08);
+      color: #8a3410;
+    }
+
+    @media (max-width: 920px) {
+      .hero { grid-template-columns: 1fr; }
+    }
   </style>
 </head>
 <body>
   <main>
-    <div class="card">
-      <h1>@shipitandpray/pretext-canvas</h1>
-      <p>Canvas and WebGL text rendering package built from the Claude handoff spec.</p>
-      <p>Status: repo registered and awaiting implementation after chat UI.</p>
-      <p>Package target: <code>@shipitandpray/pretext-canvas</code></p>
-    </div>
+    <section class="hero">
+      <article class="panel intro">
+        <div class="badge">Pretext Canvas</div>
+        <h1>Multi-line canvas text without DOM hacks.</h1>
+        <p class="lede">
+          This package measures text with Pretext, renders multi-line blocks onto Canvas,
+          and exposes an atlas helper for WebGL labels. The demo below is driven directly
+          by the package output.
+        </p>
+        <div class="meta">
+          <div><strong>Package:</strong> <code>@shipitandpray/pretext-canvas</code></div>
+          <div><strong>Core API:</strong> <code>renderText</code>, <code>renderTextBox</code>, <code>createTextAtlas</code>, <code>renderTextWebGL</code></div>
+          <div><strong>Build:</strong> TypeScript + tsup + Vitest</div>
+        </div>
+      </article>
+      <aside class="panel sample">
+        <canvas id="demo" width="760" height="920"></canvas>
+      </aside>
+    </section>
   </main>
+
+  <script type="module">
+    import { createTextAtlas, renderTextBox, renderText } from './dist/index.js'
+
+    const canvas = document.getElementById('demo')
+    const ctx = canvas.getContext('2d')
+
+    async function draw() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height)
+
+      await renderTextBox(ctx, 'Canvas text can be treated like a layout system.\nThis box is rendered from Pretext measurements.', {
+        x: 54,
+        y: 54,
+        maxWidth: 652,
+        font: '30px Georgia',
+        lineHeight: 42,
+        color: '#132238',
+        backgroundColor: 'rgba(255,255,255,0.94)',
+        borderColor: 'rgba(15,118,110,0.25)',
+        borderWidth: 2,
+        borderRadius: 24,
+        padding: { top: 28, right: 28, bottom: 28, left: 28 },
+      })
+
+      await renderText(ctx, 'Use it for HUDs, charts, infographics, and creative-coding overlays.', {
+        x: 54,
+        y: 310,
+        maxWidth: 620,
+        font: '20px Georgia',
+        lineHeight: 32,
+        color: '#4f6275',
+        textAlign: 'left',
+      })
+
+      const atlas = await createTextAtlas(
+        ['Score: 128', 'Combo: 04', 'Level 07'],
+        '22px Georgia',
+        { maxWidth: 220, padding: 10, atlasSize: 512 },
+      )
+
+      const atlasCanvas = atlas.canvas
+      const atlasCtx = atlasCanvas.getContext('2d')
+      if (atlasCtx) {
+        atlasCtx.save()
+        atlasCtx.globalAlpha = 0.08
+        atlasCtx.fillStyle = '#0f766e'
+        atlasCtx.fillRect(0, 0, atlasCanvas.width, atlasCanvas.height)
+        atlasCtx.restore()
+      }
+
+      ctx.drawImage(atlasCanvas, 54, 390, 260, 260)
+
+      await renderTextBox(ctx, 'Pack multiple labels into a reusable atlas for WebGL scenes.', {
+        x: 344,
+        y: 400,
+        maxWidth: 362,
+        font: '22px Georgia',
+        lineHeight: 34,
+        color: '#132238',
+        backgroundColor: 'rgba(255,255,255,0.92)',
+        borderColor: 'rgba(180,83,9,0.28)',
+        borderWidth: 2,
+        borderRadius: 20,
+        padding: { top: 18, right: 18, bottom: 18, left: 18 },
+      })
+
+      await renderText(ctx, 'The package is intentionally small: one layout layer, one box renderer, one atlas builder.', {
+        x: 54,
+        y: 700,
+        maxWidth: 654,
+        font: '18px Georgia',
+        lineHeight: 28,
+        color: '#6b7280',
+      })
+    }
+
+    draw()
+  </script>
 </body>
 </html>
